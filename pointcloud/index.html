@@ -13,7 +13,7 @@
 <script>
   function init() {
     var ros = new ROSLIB.Ros({
-      url : 'ws://localhost:9090'
+      url : 'ws://tong.local:9090'
     });
 
     var viewer = new ROS3D.Viewer({
@@ -46,18 +46,10 @@
       loader :  ROS3D.COLLADA_LOADER_2
     });
  
-    // Setup a client to listen to TFs.
-    var tfClient = new ROSLIB.TFClient({
-      ros : ros,
-      angularThres : 0.01,
-      transThres : 0.01,
-      rate : 10.0,
-      fixedFrame : '/camera_link'
-    });
 
     // Setup Kinect DepthCloud stream
     depthCloud = new ROS3D.DepthCloud({
-      url : 'http://'+window.location.hostname + ':9999/streams/depthcloud_encoded.webm',
+      url : 'http://tong.local:9999/streams/depthcloud_encoded.webm',
       f : 525.0
     });
     
@@ -65,11 +57,27 @@
 
     // Create Kinect scene node
     var kinectNode = new ROS3D.SceneNode({
-      frameID : '/camera_rgb_optical_frame',
+      frameID : '/head_camera_rgb_optical_frame',
       tfClient : tfClient,
       object : depthCloud
     });
     viewer.scene.add(kinectNode);
+
+
+    // Setup the marker client.
+    var imClient = new ROS3D.InteractiveMarkerClient({
+      ros : ros,
+      tfClient : tfClient,
+      topic : '/basic_controls',
+      camera : viewer.camera,
+      rootObject : viewer.selectableObjects
+    });
+
+    // Setup the map client.
+    var gridClient = new ROS3D.OccupancyGridClient({
+      ros : ros,
+      rootObject : viewer.scene
+    });
   }
 </script>
 </head>
@@ -80,7 +88,6 @@
     <li><tt>roscore</tt></li>
     <li><tt>roslaunch rosbridge_server rosbridge_websocket.launch</tt></li>
     <li><tt>rosrun tf2_web_republisher tf2_web_republisher</tt></li>
-    <li><tt>roslaunch openni_launch openni.launch depth_registration:=true</tt></li>
     <li><tt>rosrun ros_web_video ros_web_video _port:=9999 _framerate:=15 _bitrate:=250000 _profile:=best _www_file_server:=true _wwwroot:=<b>/path/to/ros3djs/</b></tt></li>
     <li><tt>rosrun depthcloud_encoder depthcloud_encoder_node _depth:=/camera/depth_registered/image_rect _rgb:=/camera/rgb/image_rect_color</tt></li>
   </ol>

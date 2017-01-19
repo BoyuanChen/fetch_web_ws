@@ -1,0 +1,30 @@
+
+
+
+rosrun depthcloud_encoder depthcloud_encoder_node _depth:=/head_camera/depth/image_rect _rgb:=/head_camera/rgb/image_rect_color
+
+
+
+rosrun interactive_marker_tutorials basic_controls
+rosrun interactive_marker_proxy proxy topic_ns:=/basic_controls target_frame:=/world
+
+
+rosrun ros_web_video ros_web_video _port:=9999 _framerate:=15 _bitrate:=250000 _profile:=best _www_file_server:=true _wwwroot:=/home/bo/ros/web-ui/ros3djs
+
+
+
+rosrun map_server map_server /home/tim/ros/grasp_ws/robot_ws/src/robot_mapping/maps/first_map.yaml.pgm 0.05
+
+
+
+
+//Use the map (from slam) to navigate the robot
+roslaunch fetch_navigation fetch_nav.launch map_file:=~/ros/grasp_ws/robot_ws/src/robo_mapping/maps/to/first_map.yaml
+
+
+
+
+
+import subprocess
+
+subprocess.call(["roslaunch", ""])
