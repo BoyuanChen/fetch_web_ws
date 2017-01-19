@@ -51,3 +51,8 @@ rosrun depthcloud_encoder depthcloud_encoder_node _depth:=/head_camera/depth_reg
 rosrun ros_web_video ros_web_video _port:=9999 _framerate:=15 _bitrate:=250000 _profile:=best www_file_server:=true _wwwroot:=~/ros/grasp_ws/web-ui/pointcloud
 
 ```
+
+```
+catkin_init_workspace
+catkin_make
+```
