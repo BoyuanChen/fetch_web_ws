@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="http://cdn.robotwebtools.org/threejs/current/three.min.js"></script>
+<script src="http://cdn.robotwebtools.org/ColladaAnimationCompress/current/ColladaLoader2.js"></script>
+<script src="http://cdn.robotwebtools.org/threejs/current/STLLoader.js"></script>
+<script src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<script src="http://cdn.robotwebtools.org/ros3djs/current/ros3d.min.js"></script>
+
+<script>
+  function runRecognition() {
+    var ros = new ROSLIB.Ros({
+      url : 'ws://tong.local:9090'
+    });
+
+
+    var runRec = new ROSLIB.Topic({
+      ros : ros,
+      name : '/run_recognition',
+      messageType : 'std_msgs/Empty'
+    });
+  
+    var runRecMsg = new ROSLIB.Message();
+    runRec.publish(runRecMsg);
+  }
+
+  function upTorso() {
+    var ros = new ROSLIB.Ros({
+      url : 'ws://tong.local:9090'
+    });
+
+
+    var upTor = new ROSLIB.Topic({
+      ros : ros,
+      name : '/up_torso',
+      messageType : 'std_msgs/Empty'
+    });
+  
+    var upTorMsg = new ROSLIB.Message();
+    upTor.publish(upTorMsg);
+  }
+
+  function downTorso() {
+    var ros = new ROSLIB.Ros({
+      url : 'ws://tong.local:9090'
+    });
+
+
+    var downTor = new ROSLIB.Topic({
+      ros : ros,
+      name : '/down_torso',
+      messageType : 'std_msgs/Empty'
+    });
+  
+    var downTorMsg = new ROSLIB.Message();
+    downTor.publish(downTorMsg);
+  }
+
+  function tuckArm() {
+    var ros = new ROSLIB.Ros({
+      url : 'ws://tong.local:9090'
+    });
+
+
+    var tuckAr = new ROSLIB.Topic({
+      ros : ros,
+      name : '/tuck_arm',
+      messageType : 'std_msgs/Empty'
+    });
+  
+    var tuckArMsg = new ROSLIB.Message();
+    tuckAr.publish(tuckArMsg);
+  }
+
+
+
+
+
+
+
+  function init() {
+    var ros = new ROSLIB.Ros({
+      url : 'ws://tong.local:9090'
+    });
+
+    var viewer = new ROS3D.Viewer({
+      divID : 'viewer',
+      width : window.innerWidth,
+      height : window.innerHeight,
+      antialias : true,
+      background: '#002233'
+    });
+    viewer.addObject(new ROS3D.Grid({
+      color:'#0181c4',
+      cellSize: 0.5,
+      num_cells: 20
+    }));
+
+    
+    var tfClient = new ROSLIB.TFClient({
+      ros : ros,
+      angularThres : 0.01,
+      transThres : 0.01,
+      rate : 10.0,
+      fixedFrame: '/base_link'
+    });
+
+    new ROS3D.UrdfClient({
+      ros : ros,
+      tfClient : tfClient,
+      path : 'http://resources.robotwebtools.org/',
+      rootObject : viewer.scene,
+      loader :  ROS3D.COLLADA_LOADER_2
+    });
+ 
+
+    // Setup Kinect DepthCloud stream
+    depthCloud = new ROS3D.DepthCloud({
+      url : 'http://tong.local:9999/streams/depthcloud_encoded.webm',
+      f : 525.0
+    });
+    
+    depthCloud.startStream();
+
+    // Create Kinect scene node
+    var kinectNode = new ROS3D.SceneNode({
+      frameID : '/head_camera_rgb_optical_frame',
+      tfClient : tfClient,
+      object : depthCloud
+    });
+    viewer.scene.add(kinectNode);
+
+
+    // Setup the marker client.
+    var imClient = new ROS3D.InteractiveMarkerClient({
+      ros : ros,
+      tfClient : tfClient,
+      topic : '/basic_controls',
+      camera : viewer.camera,
+      rootObject : viewer.selectableObjects
+    });
+
+    // Setup the map client.
+    var gridClient = new ROS3D.OccupancyGridClient({
+      ros : ros,
+      rootObject : viewer.scene
+    });
+  }
+</script>
+</head>
+<body onload="init()">
+  <h1> Fetch Control Panel </h1>
+  <button type="button" onclick="runRecognition()">Run Recognition</button>
+  <button type="button" onclick="upTorso()">Torso Up</button>
+  <button type="button" onclick="downTorso()">Torso Down</button>
+  <button type="button" onclick="tuckArm()">Tuck Arm</button>
+  <div id="viewer"></div>
+</body>
+</html>
